@@ -1,0 +1,351 @@
+<html>
+    <head>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="style.css"/>
+    </head>
+    <body>
+    <h2 id="graphTitle"></h2>
+    <div class="buttons">
+        <button id="finalVShw">Final Grade vs. Mean Homework Grade</button>
+        <button id="hwVSquiz">Mean Homework Grade vs. Mean Quiz Grade</button>
+        <button id="testVSfinal">Mean Test Grade vs. Mean Final Grade</button>
+        <button id="testVSquiz">Mean Test Grade vs Mean Quiz Grade</button>
+        </div>
+    <div id="tooltip" class="hidden">
+        <img class="pengpic" />
+        </div>
+    <svg id="plot"></svg>
+    
+    </body>
+    
+    <script>
+    
+//get mean quiz grades
+var getQuiz = function(quiz) {
+                return quiz.grade;
+            }
+var PengQuiz = function(penguin)
+           {
+               var quizArray= penguin.quizes;
+               var grades = quizArray.map(getQuiz);
+               return d3.mean(grades).toFixed(2);
+           }    
+
+//get mean test grades
+     var getTest = function(test) 
+            {
+                return test.grade;
+            }
+     var PengTest = function(penguin)
+           {
+               var testArray= penguin.test;
+               var grades = testArray.map(getTest);
+               return d3.mean(grades).toFixed(1);
+           }    
+        
+//get mean homework grades
+     var getHW = function(homework) {
+                return homework.grade;
+            }
+     var PengHW = function(penguin)
+           {
+               var hwArray= penguin.homework;
+               var grades = hwArray.map(getHW);
+               return d3.mean(grades).toFixed(2);
+           }    
+
+//get final grades
+     var PengFinal = function(penguin)
+     {
+         return penguin.final[0].grade
+     }
+
+//set title
+var setTitle = function(msg)
+{
+    d3.select("#graphTitle")
+    .text(msg);
+}
+
+//clear graph
+var clearGraph = function()
+{
+    d3.selectAll("circle")
+        .remove()
+    console.log("cleared")
+}
+
+ //make tooltip 
+var drawToolTip = function(penguin)
+{
+    console.log("drawn")
+    d3.select("#tooltip")
+        .remove();
+    
+    var xPos = d3.event.pageX;
+    var yPos = d3.event.pageY
+    
+        d3.select("#tooltip")
+        .classed("hidden", false)
+        .style("top",yPos+"px")
+        .style("left",xPos+"px")
+        .append("#tooltip img")
+        .attr("src", function(penguin){return penguin.picture})
+}
+
+
+//create the 1st scatter plot (final vs hw)
+var makeFinalvsHW = function(penguin)
+{
+    //title
+    setTitle("Final Grade vs. Mean Homework Grade")
+    
+   var width = 500;
+   var height = 300;
+       
+   var svg = d3.select("#plot")
+        .attr("width", width)
+        .attr("height", height)
+        
+
+//scales
+   var padding = 20
+    var xScale = d3.scaleLinear()
+                    .domain([0,d3.max(penguin,PengFinal)])
+                    .range([padding,width-padding])
+    
+    var yScale = d3.scaleLinear()
+                    .domain([0,d3.max(penguin,PengHW)])
+                    .range([height-padding,padding])
+    
+    //dots
+        d3.select("#plot")
+        .selectAll("circle")
+        .data(penguin)
+        .enter()
+        .append("circle")
+        .attr("cx",function(penguin)
+             {
+                return xScale(PengFinal(penguin));
+            })
+        .attr("cy",function(penguin)
+             {
+                return yScale(PengHW(penguin));
+            })
+        .attr("r",5) 
+
+  
+    //tooltip
+       .on("mouseover", drawToolTip)
+        .on("mouseout", function()
+           {
+            d3.select("#tooltip")
+                .classed("hidden", true)
+        })
+    
+    
+}
+
+//2nd scatter plot (hw vs quiz)
+var makeHWvsQuiz = function(penguin)
+{
+    
+    //title
+    setTitle("Mean Homework Grade vs. Mean Quiz Grade")
+    
+   var width = 500;
+   var height = 300;
+       
+   var svg = d3.select("#plot")
+        .attr("width", width)
+        .attr("height", height)
+        
+
+//scales
+   var padding = 20
+    var xScale = d3.scaleLinear()
+                    .domain([0,d3.max(penguin, PengHW)])
+                    .range([padding,width-padding]);
+    
+    var yScale = d3.scaleLinear()
+                    .domain([0,d3.max(penguin, PengQuiz)])
+                    .range([height-padding,padding]);
+    
+    //dots
+    var dots = d3.select("#plot")
+        .selectAll("circle")
+        .data(penguin)
+        .enter()
+        .append("circle")
+        .attr("cx",function(penguin)
+             {
+                return xScale(PengHW(penguin));
+            })
+        .attr("cy",function(penguin)
+             {
+                return yScale(PengQuiz(penguin));
+            })
+        .attr("r",5)   
+  
+    //tooltip
+        .on("mouseover", drawToolTip)
+        .on("mouseout", function()
+           {
+            d3.select("#tooltip")
+                .classed("hidden", true)
+        })
+    
+    
+}
+
+//3rd scatter plot (test vs final)
+var makeTestvsFinal = function(penguin)
+{
+   var width = 500;
+   var height = 300;
+       
+   var svg = d3.select("#plot")
+        .attr("width", width)
+        .attr("height", height)
+        
+
+//scales
+   var padding = 20
+    var xScale = d3.scaleLinear()
+                    .domain([0,d3.max(penguin,PengTest)])
+                    .range([padding,width-padding])
+    
+    var yScale = d3.scaleLinear()
+                    .domain([0,d3.max(penguin,PengFinal)])
+                    .range([height-padding,padding])
+    
+    //dots
+        d3.select("#plot")
+        .selectAll("circle")
+        .data(penguin)
+        .enter()
+        .append("circle")
+        .attr("cx",function(penguin)
+             {
+                return xScale(PengTest(penguin));
+            })
+        .attr("cy",function(penguin)
+             {
+                return yScale(PengFinal(penguin));
+            })
+        .attr("r",5)   
+  
+    //tooltip
+        .on("mouseover", drawToolTip)
+        .on("mouseout", function()
+           {
+            d3.select("#tooltip")
+                .classed("hidden", true)
+        })
+    
+    //title
+    setTitle("Mean Test Grade vs. Final Grade")
+}
+
+//4th scatter plot (test vs quiz)
+var makeTestvsQuiz = function(penguin)
+{
+   var width = 500;
+   var height = 300;
+       
+   var svg = d3.select("#plot")
+        .attr("width", width)
+        .attr("height", height)
+        
+
+//scales
+   var padding = 20
+    var xScale = d3.scaleLinear()
+                    .domain([0,d3.max(penguin,PengTest)])
+                    .range([padding,width-padding])
+    
+    var yScale = d3.scaleLinear()
+                    .domain([0,d3.max(penguin,PengQuiz)])
+                    .range([height-padding,padding])
+    
+    //dots
+        d3.select("#plot")
+        .selectAll("circle")
+        .data(penguin)
+        .enter()
+        .append("circle")
+        .attr("cx",function(penguin)
+             {
+                return xScale(PengTest(penguin));
+            })
+        .attr("cy",function(penguin)
+             {
+                return yScale(PengQuiz(penguin));
+            })
+        .attr("r",5)   
+  
+    //tooltip
+        .on("mouseover", drawToolTip)
+        .on("mouseout", function()
+           {
+            d3.select("#tooltip")
+                .classed("hidden", true)
+        })
+    
+    //title
+    setTitle("Mean Test Grade vs. Mean Quiz Grade")
+}
+
+    
+//Promise
+ var PenguinPromise = d3.json("classData.json");
+
+//success
+var PengSuccess = function(penguin)
+{
+    console.log("Success", penguin);
+    makeFinalvsHW(penguin);
+    
+    d3.select("#finalVShw")
+    .on("click", function(penguin)
+       {
+        clearGraph();
+        makeFinalvsHW(penguin);
+    })
+    
+    d3.select("#hwVSquiz")
+    .on("click", function(penguin)
+    {
+       clearGraph();
+        makeHWvsQuiz(penguin);
+        })
+    
+    d3.select("#testVSfinal")
+    .on("click", function(penguin)
+       {
+        clearGraph();
+        makeTestvsFinal(penguin);
+    })
+    
+    d3.select("#testVSquiz")
+    .on("click", function(penguin)
+       {
+        clearGraph();
+        makeTestvsQuiz(penguin);
+    })
+    
+}
+
+//failure
+var PengFail = function(error)
+{
+    console.log("Something went wrong", error);
+}
+
+PenguinPromise.then(PengSuccess,PengFail)
+    
+    
+    
+    </script>
+
+</html>

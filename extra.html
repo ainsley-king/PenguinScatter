@@ -1,0 +1,18 @@
+ //make tooltip 
+var drawToolTip = function(penguin)
+{
+    console.log("drawn")
+    d3.select("#tooltip")
+        .remove();
+    
+    var xPos = d3.event.pageX;
+    var yPos = d3.event.pageY
+    
+        d3.select("#tooltip")
+        .classed("hidden", false)
+        .style("top",yPos+"px")
+        .style("left",xPos+"px")
+        
+        d3.select("#pengpic")
+        .attr("src", function(penguin){return penguin.picture})
+}
